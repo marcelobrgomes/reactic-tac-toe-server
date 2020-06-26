@@ -50,6 +50,20 @@ const getRoomNextPlayer = (room) => {
     return room.find(client => client.player === 'X') ? 'O' : 'X'
 }
 
+const getPlayerRoom = (clientId) => {
+    let playerRoom
+
+    rooms.forEach(room => {
+        client = room.find(client => client.clientId === clientId)
+        if(client) {
+            playerRoom = room
+            return
+        }
+    })
+
+    return playerRoom
+}
+
 io.on('connection', (client) => {
     client.on('join', () => {
         let room = joinRoom(client)
@@ -64,7 +78,8 @@ io.on('connection', (client) => {
 
         client.broadcast.emit('playerConnected', {
             message: roomPlayer.player === 'X' ? '' : `Sua vez`,
-            player: roomPlayer.player
+            player: roomPlayer.player,
+            room: room
         })
     })
 
@@ -73,6 +88,21 @@ io.on('connection', (client) => {
             gameArray: gameData.gameArray,
             nextPlayer: gameData.nextPlayer,
             message: 'Sua vez'
+        })
+    })
+
+    client.on('gameOver', (gameData) => {
+        //console.log(gameData)
+        console.log('clientId', client.id)
+        client.emit('youWin', {
+            message: 'Você venceu'
+        })
+
+        let playerRoom = getPlayerRoom(client.id)
+        let oponentClientId = playerRoom.filter(roomClient => roomClient.clientId !== client.id)[0]
+        //console.log('oponentClientId', oponentClientId)
+        client.broadcast.to(oponentClientId.clientId).emit('youLose', {
+            message: 'Você perdeu'
         })
     })
 
