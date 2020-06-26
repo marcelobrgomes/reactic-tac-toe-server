@@ -114,6 +114,6 @@ io.on('connection', (client) => {
     })
 })
 
-http.listen(3001, () => {
-    console.log('listening port 3001');
+http.listen(80, () => {
+    console.log('listening port 80');
 })
